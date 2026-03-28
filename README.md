@@ -55,8 +55,8 @@ The final solution is a **hybrid ranking pipeline**:
 ```mermaid
 graph TD
 %% 1. Input Data & Preparation
-subgraph Input_Data [1. Входные данные и Подготовка]
-DF_Raw[Исходные данные: users, editions, authors...]
+subgraph Input_Data [1. Input Data & Preparation]
+DF_Raw[Raw Data: users, editions, authors...]
 Cand[Candidates 200/user]
 Targ[Targets]
 Mapp[Create ID Mappings]
@@ -65,7 +65,7 @@ end
 Mapp --> Feat_Gen
 
 %% 2. Feature Engineering
-subgraph Feat_Gen [2. Генерация признаков]
+subgraph Feat_Gen [2. Feature Engineering]
     FE_User[User features]
     FE_Item[Item features]
     FE_Text[Text NLP]
@@ -84,7 +84,7 @@ FE_Genre --> Stacking_L1
 FE_Global --> Stacking_L1
 
 %% 3. Stacking Level 1
-subgraph Stacking_L1 [3. Уровень 1: Meta-features]
+subgraph Stacking_L1 [3. Level 1: Meta-features]
     CB[CatBoost]
     LGB[LightGBM]
     XGB[XGBoost]
@@ -97,14 +97,14 @@ XGB --> Final_Ranker
 NN --> Final_Ranker
 
 %% 4. Stacking Level 2 & Final Ranking
-subgraph Stacking_L2 [4. Уровень 2: Ранжирование]
+subgraph Stacking_L2 [4. Level 2: Ranking]
     Final_Ranker[CatBoostRanker YetiRank]
 end
 
 Final_Ranker --> Raw_Ranks[Initial Ranked List]
 
 %% 5. Post-Processing
-subgraph Post_Processing [5. Пост-обработка]
+subgraph Post_Processing [5. Post-Processing]
     MMR_Rerank{Smart MMR v2}
 end
 
