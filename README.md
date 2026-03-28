@@ -1,6 +1,7 @@
 # by-pages-hackathon-solution
 
 Solution for the AI Academy hackathon **“By Pages”**.  
+## Score: **0.719**
 The task is to build a ranked list of 20 books (`edition_id`) for each user from a pool of 200 candidates, balancing two objectives:
 
 - maximum **relevance** of recommendations;
