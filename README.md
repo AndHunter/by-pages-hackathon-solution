@@ -46,7 +46,87 @@ Thus, the task requires not only accurate personalization but also a careful bal
 ## Solution Idea
 
 The final solution is a **hybrid ranking pipeline**:
+graph TD
+    %% 1. Input Data & Preparation
+    subgraph Input_Data [1. Входные данные и Подготовка]
+        DF_Raw[<b>Исходные данные:</b><br/>users, editions, authors, interactions, genres, book_genres]
+        Cand[<b>Candidates (200/user):</b><br/>user_id, edition_id]
+        Targ[<b>Targets:</b><br/>user_id, edition_id]
+        NLP_Models[<b>sentence-transformers</b>]
+        Mapp[Create ID Mappings & Interaction Maps]
+    end
 
+    %% Mappings flow to NLP & Features
+    Mapp --> NLP_Models
+    Mapp --> Feat_Gen
+    NLP_Models --> Feat_Gen
+
+    %% 2. Feature Engineering
+    subgraph Feat_Gen [2. Генерация признаков (7 групп)]
+        FE_User[<b>User:</b><br/>interactions count, w/r ratio, genre history, gender/age...]
+        FE_Item[<b>Item:</b><br/>popularity, avg rating, genre/author flags...]
+        FE_Text[<b>Text (NLP):</b><br/>embeddings, PCA, clusters, similarity...]
+        FE_CF[<b>CF & Retrieval:</b><br/>ALS, SVD, SWING similarity...]
+        FE_Auth[<b>Author/Pub/Series:</b><br/>affinity, loyalty, sequel-of-read...]
+        FE_Genre[<b>Genre:</b><br/>affinity, entropy, novelty...]
+        FE_Global[<b>Global Stats/Graph:</b><br/>completion/stickiness, PageRank, demographic popularity...]
+    end
+
+    DF_Raw --> Mapp
+    Cand --> Feat_Gen
+    Targ --> Feat_Gen
+
+    %% Connect Feature groups
+    FE_User --> Stacking_L1
+    FE_Item --> Stacking_L1
+    FE_Text --> Stacking_L1
+    FE_CF --> Stacking_L1
+    FE_Auth --> Stacking_L1
+    FE_Genre --> Stacking_L1
+    FE_Global --> Stacking_L1
+
+    %% 3. Stacking Level 1
+    subgraph Stacking_L1 [3. Уровень 1 (Мета-признаки)]
+        CB_Cls[CatBoost Classifier]
+        CB_Reg[CatBoost Regressor]
+        LGB_Cls[LightGBM Classifier]
+        LGB_Reg[LightGBM Regressor]
+        XGB_Cls[XGBoost Classifier]
+        XGB_Reg[XGBoost Regressor]
+        TabNN[Tabular Neural Network]
+    end
+
+    %% Connect L1 outputs
+    CB_Cls --> Meta_Features
+    CB_Reg --> Meta_Features
+    LGB_Cls --> Meta_Features
+    LGB_Reg --> Meta_Features
+    XGB_Cls --> Meta_Features
+    XGB_Reg --> Meta_Features
+    TabNN --> Meta_Features
+
+    %% 4. Stacking Level 2 & Final Ranking
+    subgraph Stacking_L2 [4. Уровень 2 (Ранжирование)]
+        Meta_Features[[<b>Meta-Features:</b><br/>L1 model predictions]]
+        Final_Ranker[<b>CatBoostRanker (YetiRank):</b><br/>Trains on Meta-Features for optimal NDCG@20]
+    end
+
+    Meta_Features --> Final_Ranker
+    Final_Ranker --> Raw_Ranks[Initial Ranked List]
+
+    %% 5. Post-Processing (Diversity)
+    subgraph Post_Processing [5. Пост-обработка (Диверсификация)]
+        Genre_Graph[<b>Genre Graph</b>]
+        Sequel_Logic[Sequel Immunity Logic]
+        MMR_Rerank{<b>Smart MMR v2</b>}
+    end
+
+    Raw_Ranks --> MMR_Rerank
+    Genre_Graph --> MMR_Rerank
+    Sequel_Logic --> MMR_Rerank
+
+    %% Output
+    MMR_Rerank --> Final_Output[[<b>submission.csv:</b><br/>diversity-aware ranked Top-20]]
 1. A large set of features is constructed:
    - user features;
    - item features;
