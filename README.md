@@ -46,11 +46,7 @@ Thus, the task requires not only accurate personalization but also a careful bal
 ## Solution Idea
 
 The final solution is a **hybrid ranking pipeline**:
-Понимаю, в чем проблема. GitHub не понимает, что это схема, если её не обернуть в специальные теги. Сейчас у тебя это выглядит как обычный текст, который слипся в кашу.
 
-Чтобы схема заработала и превратилась в красивый рисунок, тебе нужно в режиме редактирования README.md обернуть этот блок кода в тройные кавычки с пометкой mermaid.
-
-Вот как должен выглядеть этот кусок в редакторе:
 
 ```mermaid
 graph TD
